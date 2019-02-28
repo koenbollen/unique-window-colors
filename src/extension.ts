@@ -16,9 +16,9 @@ export class SettingsFileDeleter {
     private workspaceRoot: string,
     private colors: ColorsInterface) { }
 
-  /** 
+  /**
    * Deletes .vscode/settings.json if colors all match either the default light or dark Windows Colors and if no other settings exist.
-   * 
+   *
    * Deletes .vscode if no other files exist.
    */
   public dispose() {
@@ -39,7 +39,9 @@ export class SettingsFileDeleter {
       const aColorWasModified =
         (cc['activityBar.background'] !== this.colors.sideBarColor_dark.hex() && cc['activityBar.background'] !== this.colors.sideBarColor_light.hex()) ||
         (cc['titleBar.activeBackground'] !== this.colors.titleBarColor_dark.hex() && cc['titleBar.activeBackground'] !== this.colors.titleBarColor_light.hex()) ||
-        (cc['titleBar.activeForeground'] !== this.colors.titleBarTextColor_dark.hex() && cc['titleBar.activeForeground'] !== this.colors.titleBarTextColor_light.hex());
+        (cc['titleBar.inactiveBackground'] !== this.colors.titleBarColor_dark.hex() && cc['titleBar.inactiveBackground'] !== this.colors.titleBarColor_light.hex()) ||
+        (cc['titleBar.activeForeground'] !== this.colors.titleBarTextColor_dark.hex() && cc['titleBar.activeForeground'] !== this.colors.titleBarTextColor_light.hex()) ||
+        (cc['titleBar.inactiveForeground'] !== this.colors.titleBarTextColor_dark.hex() && cc['titleBar.inactiveForeground'] !== this.colors.titleBarTextColor_light.hex());
 
       if (!aColorWasModified) {
         fs.unlinkSync(settingsfile);
@@ -112,7 +114,7 @@ export function activate(context: ExtensionContext) {
 
   let doUpdateColors = true;
 
-  if (cc && (cc['activityBar.background'] || cc['titleBar.activeBackground'] || cc['titleBar.activeForeground'])) {
+  if (cc && (cc['activityBar.background'] || cc['titleBar.activeBackground'] || cc['titleBar.inactiveBackground'] || cc['titleBar.activeForeground'] || cc['titleBar.inactiveForeground'])) {
     //don't overwrite
     doUpdateColors = false;
   }
@@ -126,7 +128,9 @@ export function activate(context: ExtensionContext) {
     const newColors = {
       "activityBar.background": doRemoveColors ? undefined : sideBarColor.hex(),
       "titleBar.activeBackground": doRemoveColors ? undefined : titleBarColor.hex(),
+      "titleBar.inactiveBackground": doRemoveColors ? undefined : titleBarColor.hex(),
       "titleBar.activeForeground": doRemoveColors ? undefined : titleBarTextColor.hex(),
+      "titleBar.inactiveForeground": doRemoveColors ? undefined : titleBarTextColor.hex(),
       //these lines are for development since the extension demo doesn't show the formatted title bar
       // "sideBarSectionHeader.background": titleBarColor.hex(),
       // "sideBarSectionHeader.foreground": titleBarTextColor.hex()
@@ -202,7 +206,7 @@ function intToARGB(i: number) {
     ((i >> 16) & 0xFF).toString(16) +
     ((i >> 8) & 0xFF).toString(16) +
     (i & 0xFF).toString(16);
-  // Sometimes the string returned will be too short so we 
+  // Sometimes the string returned will be too short so we
   // add zeros to pad it out, which later get removed if
   // the length is greater than six.
   hex += '000000';
